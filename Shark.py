@@ -1,8 +1,7 @@
-import numpy as np
 from resources.agent import Agent
 from Fish import Fish
-from resources.consts import energy_to_color
-
+import pygame as pg
+from resources.consts import SHARK_SIZE
 
 class Shark(Fish):
 
@@ -22,11 +21,21 @@ class Shark(Fish):
 
     """
 
-    def __init__(self, position: tuple):
-        super(Agent, self).__init__(f"Shark")
-        # self.energy = 100
-        # self.color = energy_to_color(self.energy)
+    def __init__(self, position: tuple, velocity: list):
+        super(Shark, self).__init__(position=position, velocity=velocity)
+        self.name="Shark"
        
     def action(self) -> int:
         raise NotImplementedError()
+
+    def draw(self, screen, p):
+        color = self.getColor()
+        radius = SHARK_SIZE
+        pg.draw.circle(screen, color, p, radius)
+
+    def eat(self, fish):
+        # self.energy = fish.nutritional_value
+        raise NotImplementedError()
+
+
 

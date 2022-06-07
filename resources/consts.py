@@ -7,6 +7,14 @@ red = Color("red")
 green = Color("green")
 FISH_COLORS = list(red.range_to(green, FISH_MAX_ENERGY))
 
+
+SHARK_SPEED = 2
+FISH_SPEED = 1
+
+
+FISH_SIZE = 5
+SHARK_SIZE = 30
+
 def energy_to_color(energy: int) -> tuple:
     color = FISH_COLORS[energy-1]
     hex = color.hex_l
