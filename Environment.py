@@ -16,7 +16,11 @@ class Environment():
         self._plankton = plankton
         self._max_steps = max_steps
 
-    def update_flocks(dt, positions, velocities, params):
+    def update_flocks(dt, fishes, params):
+
+        positions = [fish.position for fish in fishes]
+        velocities = [fish.velocity for fish in fishes]
+        
         f1, f2, f3 = flock_forces(
             positions, velocities,
             map_size = map_size,

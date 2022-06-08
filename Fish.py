@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 import numpy as np
 import pygame as pg
 from resources.agent import Agent
@@ -5,7 +6,7 @@ from resources.consts import FISH_MAX_ENERGY
 from resources.consts import FISH_SIZE
 from resources.consts import energy_to_color
 from Flocking import flock_forces
-
+import math
 
 class Fish(Agent):
 
@@ -25,16 +26,13 @@ class Fish(Agent):
 
     """
 
-    def __init__(self, position: tuple, velocity: list):
+    def __init__(self):
     # def __init__(self, position: tuple, velocity: list):
         super(Fish, self).__init__(f"Fish")
         self.energy = FISH_MAX_ENERGY
-        self.energy_decrease = FISH_MAX_ENERGY / 100
-        self.nutritional_value = FISH_MAX_ENERGY / 20
-        # self.color = energy_to_color(self.energy)
+        self.energy_decrease = FISH_MAX_ENERGY // 100
+        self.nutritional_value = FISH_MAX_ENERGY // 20
         self.can_reproduce = False
-        self.position = position
-        self.velocity = np.array(velocity) 
 
         self.map_size = [20, 10]
         self.params = {
@@ -55,8 +53,9 @@ class Fish(Agent):
         # self.energy += plankton.nutritional_value
         raise NotImplementedError()
 
-    def energy_to_color(self, energy) -> tuple:
-        return (100, 100, 100)
+    def energy_to_color(self) -> tuple:
+        # returns rgb tuple
+        return energy_to_color(self.energy)
         
     def action(self, eat=None, reproduce=None, move=None) -> int:
         raise NotImplementedError()
@@ -87,11 +86,25 @@ class Fish(Agent):
         positions = positions + velocities * dt * self.params['speed']
         return positions, velocities
 
-    def move(self, position, velocity):
+    # def move(self, position, velocity):
+    def move(self):
         self.energy = self.energy - self.energy_decrease
-        self.position = position
-        self.velocity = velocity
-        raise NotImplementedError()
+        # self.position = position
+        # self.velocity = velocity
+        # raise NotImplementedError()
+    
+    # def peerDistance(self, fish):
+    #     p1 = self.position
+    #     p2 = fish.position
+    #     distance = math.sqrt( ((p1[0]-p2[0])**2)+((p1[1]-p2[1])**2) )
+    #     return distance
+
+    
+
+    
+# def flocking(a: Fish, b: Fish):
+
+
 
 
     

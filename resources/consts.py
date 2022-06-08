@@ -1,16 +1,14 @@
 from colour import Color
 
 
-FISH_MAX_ENERGY = 100
+FISH_MAX_ENERGY = 1000
   
 red = Color("red")
 green = Color("green")
 FISH_COLORS = list(red.range_to(green, FISH_MAX_ENERGY))
 
-
 SHARK_SPEED = 2
 FISH_SPEED = 1
-
 
 FISH_SIZE = 5
 SHARK_SIZE = 30

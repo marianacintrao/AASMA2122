@@ -12,6 +12,8 @@ from Environment import Environment as Env
 import resources.consts as consts
 
 
+
+
 SCALE_FACTOR = 1
 width, height = (1000, 500)
 fps = 60.0
@@ -29,29 +31,13 @@ plankton = []
 # Creates the chosen ammount of fishes in an initial random position on the screen
 def createFishes(n_fishes):
     for _ in range(n_fishes):
-        fish_velocity = (np.random.rand(1, 2) * consts.FISH_SPEED * 2) - consts.FISH_SPEED
-        fish_velocity = (fish_velocity[0,0], fish_velocity[0,1]
-        )
-        fish_position = (np.random.rand(1, 2)).dot( \
-                        np.array([[width, 0], \
-                        [0, height]]) ) 
-        fish_position = (fish_position[0,0], fish_position[0,1])
-
-        fishes.append(Fish(position=fish_position, velocity=fish_velocity))
+        fishes.append(Fish())
 
 
 # Creates the chosen ammount of sharks in an initial random position on the screen
-def createFishes(n_sharks):
+def createSharks(n_sharks):
     for _ in range(n_sharks):
-        shark_velocity = (np.random.rand(1, 2) * consts.SHARK_SPEED * 2) - consts.SHARK_SPEED
-        shark_velocity = (shark_velocity[0,0], shark_velocity[0,1]
-        )
-        shark_position = (np.random.rand(1, 2)).dot( \
-                        np.array([[width, 0], \
-                        [0, height]]) ) 
-        shark_position = (shark_position[0,0], shark_position[0,1])
-
-        sharks.append(Shark(position=shark_position, velocity=shark_velocity))
+        sharks.append(Shark())
 
 
 # Asks for user input in regards to the population of the species
@@ -109,6 +95,7 @@ if __name__ == '__main__':
     # env = Environment()
 
     createFishes(n_fishes)
+    createSharks(n_sharks)
 
     # env = Environment(
     #      canvas_shape=(width, height),
@@ -125,16 +112,21 @@ if __name__ == '__main__':
     fpsClock = pg.time.Clock()
     screen.fill((255, 255, 255))
 
-    positions = np.random.rand(n_fishes, 2).dot( \
+    fish_positions = np.random.rand(n_fishes, 2).dot( \
                 np.array([[width, 0], \
                           [0, height]]) )
 
-    # velocities = (np.random.rand(n_fishes, 2) * 2) - 1
+    fish_velocities = (np.random.rand(n_fishes, 2) * consts.FISH_SPEED * 2) - consts.FISH_SPEED
+
+    shark_positions = np.random.rand(n_sharks, 2).dot( \
+                np.array([[width, 0], \
+                          [0, height]]) )
+
+    shark_velocities = (np.random.rand(n_sharks, 2) * consts.SHARK_SPEED * 2) - consts.SHARK_SPEED
+
 
     # text_toggles = True
     # dt = 1/fps
-
-    print(sharks[0].name, sharks[0].energy)
 
     while True:
         for event in pg.event.get():
@@ -145,10 +137,23 @@ if __name__ == '__main__':
         # # Clear screen
         screen.fill((255, 255, 255))
 
+
+        for i in range(n_fishes):
+            fishes[i].move()
+            color = fishes[i].energy_to_color()
+            pg.draw.circle(screen, color, fish_positions[i], consts.FISH_SIZE)
+        for i in range(n_sharks):
+            sharks[i].move()
+            color = sharks[i].energy_to_color()
+            pg.draw.circle(screen, color, shark_positions[i], consts.SHARK_SIZE)
+
+
         # positions, velocities = env.update(dt, positions, velocities, params)
         # env.draw(screen, positions*SCALE_FACTOR, (100, 100, 200), 5)
         # env.update(dt)
         # env.draw(screen, positions*SCALE_FACTOR, (100, 100, 200), 5)
+        
+        
         pg.display.update()
 
         dt = fpsClock.tick(fps)

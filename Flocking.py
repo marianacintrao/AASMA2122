@@ -34,6 +34,7 @@ def flock(pos, vel, speed=0.04, influence_prox=0.5, map_size = 20,
     # other boids are around pushing them out.
     # This methods causes some division by 0 errors that I should probably
     # find the cause of...
+    '''ESTA PARTE TEM DE SER ALTERADA'''
     vel[pos > map_size] = -vel[pos > map_size]
     pos[pos > map_size] = map_size
     vel[pos < 0] = -vel[pos < 0]
