@@ -16,7 +16,7 @@ def flock(pos, vel, speed=0.04, influence_prox=0.5, map_size = 20,
     """
 
     # Update positions:
-    pos += vel * speed * dt 
+    pos += vel * speed * dt
 
     # Bounce off walls...
     # The old method (below) doesn't work sinc ethe velocities can change
@@ -34,13 +34,13 @@ def flock(pos, vel, speed=0.04, influence_prox=0.5, map_size = 20,
     # other boids are around pushing them out.
     # This methods causes some division by 0 errors that I should probably
     # find the cause of...
-    '''ESTA PARTE TEM DE SER ALTERADA'''
+    '''ESTA PARTE TEM DE SER ALTERADA   '''
     vel[pos > map_size] = -vel[pos > map_size]
     pos[pos > map_size] = map_size
     vel[pos < 0] = -vel[pos < 0]
     pos[pos < 0] = 0  # Setting to 0 here makes some division errors...
 
-    # Wrapping works nicely: 
+    # Wrapping works nicely:
     # pos = pos % map_size
 
     # Get local boids:
@@ -111,7 +111,7 @@ def flock_forces(pos, vel, influence_prox=0.5, map_size = (20, 20),
 
     NOTE
     Rather than returning the posision and velocity of the boids, this
-    func returns the forces acting on the boids. 
+    func returns the forces acting on the boids.
     This func does not update the positions or velocities
 
     ALSO - speed variable not in use
@@ -119,19 +119,21 @@ def flock_forces(pos, vel, influence_prox=0.5, map_size = (20, 20),
 
     # Bounce off walls...
     # Vel X:
-    vel[pos[:, 0]> map_size[0], 0] = -vel[pos[:, 0]> map_size[0], 0]
-    # Vel Y:
-    vel[pos[:, 1]> map_size[1], 1] = -vel[pos[:, 1]> map_size[1], 1]
+    # vel[pos[:, 0]> map_size[0], 0] = -vel[pos[:, 0]> map_size[0], 0]
+    # # Vel Y:
+    # vel[pos[:, 1]> map_size[1], 1] = -vel[pos[:, 1]> map_size[1], 1]
 
-    # Pos X & Y:
-    pos[pos[:, 0] > map_size[0], 0] = map_size[0]
-    pos[pos[:, 1] > map_size[1], 1] = map_size[1]
+    # # Pos X & Y:
+    # pos[pos[:, 0] > map_size[0], 0] = map_size[0]
+    # pos[pos[:, 1] > map_size[1], 1] = map_size[1]
 
-    # Both miniums are 0 so this is easier:
-    vel[pos < 0] = -vel[pos < 0]
-    pos[pos < 0] = 0
+    # # Both miniums are 0 so this is easier:
+    # vel[pos < 0] = -vel[pos < 0]
+    # pos[pos < 0] = 0
 
-    # Wrapping works nicely: 
+    print(" == pos == ", pos)
+
+    # Wrapping works nicely:
     # pos = pos % map_size
 
     # Get local boids:

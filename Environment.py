@@ -1,5 +1,6 @@
 import numpy as np
 from Flocking import flock_forces
+import resources.consts as consts
  
 class Environment():
 
@@ -16,15 +17,10 @@ class Environment():
         self._plankton = plankton
         self._max_steps = max_steps
 
-    def update_flocks(dt, fishes, params):
+    def update_flocks(self, dt, positions, velocities):
 
-        positions = [fish.position for fish in fishes]
-        velocities = [fish.velocity for fish in fishes]
-        
         f1, f2, f3 = flock_forces(
-            positions, velocities,
-            map_size = map_size,
-            **params
+            dt, positions, velocities
         )
         # Need to limit the speeds here somehow since the forces returned
         # don't limit speed
@@ -36,7 +32,7 @@ class Environment():
             velocities[v, :] = (velocities[v, :] / 
                 np.linalg.norm(velocities[v, :]))
 
-        positions = positions + velocities * dt * params['speed']
+        positions = positions + velocities * dt * consts.FISH_SPEED
         return positions, velocities
 
 
@@ -51,14 +47,12 @@ class Environment():
         for i in self._n_sharks:
             self._sharks[i].update(dt)
 
-    def draw(self, screen):
-        #TODO
-        # draws all agents on the screen
-        for i in self._n_fishes:
-            self.fishes[i].draw(screen, (100, 100, 100), p, 5)
-        for i in self._n_sharks:
-            self.sharks[i].draw(screen, (100, 200, 0), p, 10)
-        for i in self._n_plankton:
-            self.plankton[i].draw()
+    # def draw(self, screen):
+    #     #TODO
+    #     # draws all agents on the screen
+    #     for i in range(self.n_fishes):
+    #         self.fishes[i].move()
+    #         color = slef.fishes[i].energy_to_color()
+    #         pg.draw.circle(screen, color, fish_positions[i], consts.FISH_SIZE)
 
         

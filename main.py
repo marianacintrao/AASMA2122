@@ -8,7 +8,7 @@ import pygame as pg
 from Fish import Fish
 from Shark import Shark
 from resources.agent import Agent
-from Environment import Environment as Env
+from Environment import Environment
 import resources.consts as consts
 
 
@@ -54,28 +54,28 @@ def requestInput(name: string, default: int):
         else:
             return int(inp)
 
-def run_single_agent(environment: Env, agent: Agent, n_episodes: int) -> np.ndarray:
+# def run_single_agent(environment: Env, agent: Agent, n_episodes: int) -> np.ndarray:
 
-    results = np.zeros(n_episodes)
+#     results = np.zeros(n_episodes)
 
-    for episode in range(n_episodes):
+#     for episode in range(n_episodes):
 
-        steps = 0
-        terminal = False
-        observation = environment.reset()
-        while not terminal:
-            steps += 1
-            # TODO - Main Loop (4 lines of code)
-            agent.see(observation)
-            action = agent.action()
-            next_obs, reward, terminal, info = environment.step(action)
-            observation = next_obs
+#         steps = 0
+#         terminal = False
+#         observation = environment.reset()
+#         while not terminal:
+#             steps += 1
+#             # TODO - Main Loop (4 lines of code)
+#             agent.see(observation)
+#             action = agent.action()
+#             next_obs, reward, terminal, info = environment.step(action)
+#             observation = next_obs
 
-        environment.close()
+#         environment.close()
 
-        results[episode] = steps
+#         results[episode] = steps
 
-    return results
+#     return results
 
 
 if __name__ == '__main__':
@@ -97,11 +97,12 @@ if __name__ == '__main__':
     createFishes(n_fishes)
     createSharks(n_sharks)
 
-    # env = Environment(
-    #      canvas_shape=(width, height),
-    #      n_fishes=20, n_sharks=1, n_plankton=50,
-    #      max_steps=1000
-    #  )
+    env = Environment(
+         canvas_shape=(width, height), \
+         n_fishes=20, n_sharks=1, n_plankton=50,\
+         fishes=fishes, sharks=sharks, plankton=plankton,\
+         max_steps=1000\
+     )
 
 
     pg.init()
@@ -126,7 +127,7 @@ if __name__ == '__main__':
 
 
     # text_toggles = True
-    # dt = 1/fps
+    dt = 1/fps
 
     while True:
         for event in pg.event.get():
@@ -147,14 +148,11 @@ if __name__ == '__main__':
             color = sharks[i].energy_to_color()
             pg.draw.circle(screen, color, shark_positions[i], consts.SHARK_SIZE)
 
-
-        # positions, velocities = env.update(dt, positions, velocities, params)
-        # env.draw(screen, positions*SCALE_FACTOR, (100, 100, 200), 5)
-        # env.update(dt)
-        # env.draw(screen, positions*SCALE_FACTOR, (100, 100, 200), 5)
-        
-        
         pg.display.update()
+
+        fish_positions, fish_velocities = env.update_flocks(dt, fish_positions, fish_velocities)    
+        fish_positions, fish_velocities = env.update(dt)    
+        
 
         dt = fpsClock.tick(fps)
 
