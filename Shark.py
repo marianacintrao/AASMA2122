@@ -21,8 +21,8 @@ class Shark(Fish):
 
     """
 
-    def __init__(self):
-        super(Shark, self).__init__()
+    def __init__(self, velocity, position):
+        super(Shark, self).__init__(velocity=velocity, position=position)
         self.name="Shark"
        
     def action(self) -> int:

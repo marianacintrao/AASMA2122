@@ -26,7 +26,7 @@ class Fish(Agent):
 
     """
 
-    def __init__(self):
+    def __init__(self, velocity, position):
     # def __init__(self, position: tuple, velocity: list):
         super(Fish, self).__init__(f"Fish")
         self.energy = FISH_MAX_ENERGY
@@ -42,6 +42,9 @@ class Fish(Agent):
             'cohesion_factor': 0.003,
             'separation_factor': 0.0005
         }
+
+        self.velocity = velocity
+        self.position = position
 
     def getColor() -> tuple:
         return energy_to_color(self.energy)

@@ -29,15 +29,15 @@ plankton = []
 #     screen.blit(text, where)
 
 # Creates the chosen ammount of fishes in an initial random position on the screen
-def createFishes(n_fishes):
-    for _ in range(n_fishes):
-        fishes.append(Fish())
+def createFishes(n_fishes, velocities, positions):
+    for i in range(n_fishes):
+        fishes.append(Fish(velocity=velocities[i], position=positions[i]))
 
 
 # Creates the chosen ammount of sharks in an initial random position on the screen
-def createSharks(n_sharks):
-    for _ in range(n_sharks):
-        sharks.append(Shark())
+def createSharks(n_sharks, velocities, positions):
+    for i in range(n_sharks):
+        sharks.append(Shark(velocity=velocities[i], position=positions[i]))
 
 
 # Asks for user input in regards to the population of the species
@@ -94,15 +94,6 @@ if __name__ == '__main__':
     # # fishList = [Fish() for i in range(n_fishes)]
     # env = Environment()
 
-    createFishes(n_fishes)
-    createSharks(n_sharks)
-
-    env = Environment(
-         canvas_shape=(width, height), \
-         n_fishes=20, n_sharks=1, n_plankton=50,\
-         fishes=fishes, sharks=sharks, plankton=plankton,\
-         max_steps=1000\
-     )
 
 
     pg.init()
@@ -124,6 +115,17 @@ if __name__ == '__main__':
                           [0, height]]) )
 
     shark_velocities = (np.random.rand(n_sharks, 2) * consts.SHARK_SPEED * 2) - consts.SHARK_SPEED
+
+
+    createFishes(n_fishes, velocities=fish_velocities, positions=fish_positions)
+    createSharks(n_sharks, velocities=shark_velocities, positions=shark_positions)
+
+    env = Environment(
+         canvas_shape=(width, height), \
+         n_fishes=20, n_sharks=1, n_plankton=50,\
+         fishes=fishes, sharks=sharks, plankton=plankton,\
+         max_steps=1000\
+     )
 
 
     # text_toggles = True
