@@ -46,11 +46,14 @@ class Fish(Agent):
         self.velocity = velocity
         self.position = position
 
-    def getColor() -> tuple:
+    def getColor(self) -> tuple:
         return energy_to_color(self.energy)
 
-    def getPosition() -> tuple:
+    def getPosition(self) -> tuple:
         return self.position
+
+    def getVelocity(self) -> tuple:
+        return self.velocity
 
     def eat(self, plankton):
         # self.energy += plankton.nutritional_value

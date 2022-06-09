@@ -24,6 +24,12 @@ class Shark(Fish):
     def __init__(self, velocity, position):
         super(Shark, self).__init__(velocity=velocity, position=position)
         self.name="Shark"
+
+    def getPosition(self) -> tuple:
+        return self.position
+
+    def getVelocity(self) -> tuple:
+        return self.velocity
        
     def action(self) -> int:
         raise NotImplementedError()
