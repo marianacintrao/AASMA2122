@@ -1,17 +1,19 @@
 from colour import Color
 
-
 FISH_MAX_ENERGY = 1000
+
+influence_prox = 2.5
   
 red = Color("red")
 green = Color("green")
 FISH_COLORS = list(red.range_to(green, FISH_MAX_ENERGY))
 
 SHARK_SPEED = 2
-FISH_SPEED = 1
+FISH_SPEED = 0.5
 
-FISH_SIZE = 5
-SHARK_SIZE = 30
+PLANKTON_SIZE = 4
+FISH_SIZE = 10
+SHARK_SIZE = 40
 
 def energy_to_color(energy: int) -> tuple:
     color = FISH_COLORS[energy-1]
