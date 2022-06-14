@@ -1,7 +1,7 @@
 from colour import Color
 
-FISH_MAX_ENERGY = 1000
-
+FISH_MAX_ENERGY = 50
+SCALE_FACTOR = 50
 influence_prox = 2.5
   
 red = Color("red")

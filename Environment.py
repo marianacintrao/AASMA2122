@@ -1,3 +1,4 @@
+from turtle import update
 import numpy as np
 from Flocking import flock_forces
 import math
@@ -6,6 +7,7 @@ from Fish import Fish
 from Shark import Shark
 from Plankton import Plankton
 from resources.agent import Agent
+from resources.consts import SCALE_FACTOR
 
 import pygame as pg
 
@@ -17,7 +19,6 @@ fishes = []
 sharks = []
 plankton = []
 
-SCALE_FACTOR = 50
 
 #width = SCALE_FACTOR * map_size[0]
 #height = SCALE_FACTOR * map_size[1]
@@ -38,6 +39,8 @@ class Environment():
         self.plankton = []
         self.sharks = []
 
+        # self.fish_beliefs = []
+
         self.max_steps = max_steps
         self.map_size = [20, 15]
 
@@ -47,16 +50,18 @@ class Environment():
         self.fish_velocities = (np.random.rand(n_fishes, 2) * 2) - 1
 
         for i in range(n_fishes):
-            self.fishes.append(Fish(velocity=self.fish_velocities[i], position=self.fish_positions[i], id=i))
+            self.fishes.append(Fish(velocity=self.fish_velocities[i], position=self.fish_positions[i]))
+            # self.fish_beliefs.append([])
 
 
         # CREATING PLANKTON
         self.plankton_positions = np.random.rand(n_plankton, 2) * self.map_size
         
         for i in range(n_plankton):
-            self.plankton.append(Plankton(position=self.plankton_positions[i], id=i))
+            self.plankton.append(Plankton(position=self.plankton_positions[i]))
 
         # CREATING SHARKS
+        self.shark_positions = []
         #for i in range(n_sharks):
         #    self.sharks.append(Shark(velocity=self.velocities[i], position=positions[i]))
 
@@ -71,11 +76,11 @@ class Environment():
             **params
         )
 
-
-
         # Need to limit the speeds here somehow since the forces returned
         # don't limit speed
         velocities = velocities + (f1 + f2 + f3) * dt
+
+
         # There has to be a better way of doing this bit, but this is speed
         # setting, ensuring all boids have unit speed (otherwise things tend to
         # go rather crazy)
@@ -84,46 +89,44 @@ class Environment():
                 np.linalg.norm(velocities[v, :]))
 
         #positions = positions + velocities * dt * consts.FISH_SPEED
-        positions = positions + velocities * dt * params['speed']
-        return positions, velocities
+        return velocities
+        # positions = positions + velocities * dt * params['speed']
+        # return positions, velocities
 
     def update(self, dt, params):
-        # these are the positions and velocities for the fish, ONLY CONSIDERING THE SHOAL MOVEMENT
-       
-        f1, f2, f3 = flock_forces(
-            self.fish_positions, self.fish_velocities,
-            map_size = self.map_size,
-            **params
-        )
 
         
+        flock_fish_velocities = self.update_flocks(dt, self.fish_positions, self.fish_velocities, params, self.map_size)
+        
+        for i in range(self.n_fishes):
+            plankton_to_delete = self.fishes[i].update(dt, params, 
+                plankton_positions=self.plankton_positions, plankton=self.plankton, 
+                flock_fish_velocity=flock_fish_velocities[i], shark_positions=self.shark_positions, 
+                fish_positions=self.fish_positions
+                )
 
-        # Need to limit the speeds here somehow since the forces returned
-        # don't limit speed
-        self.fish_velocities = self.fish_velocities + (f1 + f2 + f3) * dt
-        # There has to be a better way of doing this bit, but this is speed
-        # setting, ensuring all boids have unit speed (otherwise things tend to
-        # go rather crazy)
-        for v in range(self.n_fishes):
-            self.fish_velocities[v, :] = (self.fish_velocities[v, :] / 
-                np.linalg.norm(self.fish_velocities[v, :]))
+            if plankton_to_delete != None:
+                self.n_plankton -= 1
+                self.plankton_positions = np.delete(self.plankton_positions, plankton_to_delete)
+                self.plankton = np.delete(self.plankton, plankton_to_delete)
 
-        #positions = positions + velocities * dt * consts.FISH_SPEED
-        self.fish_positions = self.fish_positions + self.fish_velocities * dt * params['speed']
 
         for i in range(self.n_fishes):
-            self.fishes[i].update()
-
+            self.fish_velocities[i] = self.fishes[i].getVelocity()
+            self.fish_positions[i] = self.fishes[i].getPosition()
 
 
 
 
     def draw(self, screen):
         for i in range(self.n_plankton):
-            self.plankton[i].draw(screen, self.plankton_positions[i]*SCALE_FACTOR, consts.PLANKTON_SIZE)
+            print("________",self.n_plankton)
+
+            self.plankton[i].draw(screen, consts.PLANKTON_SIZE)
             
         for i in range(self.n_fishes):
-            self.fishes[i].draw(screen, self.fish_positions[i]*SCALE_FACTOR, consts.FISH_SIZE)
+            #self.fishes[i].draw(screen, self.fish_positions[i]*SCALE_FACTOR, consts.FISH_SIZE)
+            self.fishes[i].draw(screen, consts.FISH_SIZE)
         
          
 

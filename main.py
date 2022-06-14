@@ -11,12 +11,6 @@ from Environment import Environment
 import resources.consts as consts
 #from resources.consts import width, height 
 
-
-
-
-
-
-
 params = {
     'speed': 0.004,
     'influence_prox': consts.influence_prox,
@@ -78,9 +72,9 @@ if __name__ == '__main__':
     screen.fill((255, 255, 255))
 
     env = Environment(
-         canvas_shape=(width, height), \
-         n_fishes=n_fishes, n_sharks=n_sharks, n_plankton=n_plankton,\
-         max_steps=1000\
+        canvas_shape=(width, height), \
+        n_fishes=n_fishes, n_sharks=n_sharks, n_plankton=n_plankton,\
+        max_steps=1000\
     )
 
 
