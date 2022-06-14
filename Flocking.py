@@ -1,6 +1,7 @@
 # File for the main flocking simulation for the boids
 # Different sims can then use this to show real-time, debug, triangles etc.
 
+from locale import locale_encoding_alias
 import numpy as np
 
 

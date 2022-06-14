@@ -54,7 +54,7 @@ if __name__ == '__main__':
     
     n_fishes = requestInput(name="fishes", default=60)
     n_sharks = requestInput(name="sharks", default=1)
-    n_plankton = requestInput(name="plankton", default=20)
+    n_plankton = requestInput(name="plankton", default=100)
 
     print("\n===============================")  
     print("Fish initial population: " + str(n_fishes))
