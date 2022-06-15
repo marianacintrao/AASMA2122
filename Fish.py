@@ -92,7 +92,7 @@ class Fish(Agent):
         energy = self.energy
         belief = self.belief
         if energy > FISH_MAX_ENERGY * .5 and belief['MATE']:
-            return consts.FISH_REPRODUCES
+            return consts.FISH_REPRODUCE
         elif energy < self.energy_decrease:
             return consts.FISH_DIE
         elif energy < FISH_MAX_ENERGY * .5 and belief['FOOD']:
@@ -106,16 +106,17 @@ class Fish(Agent):
     def reproduce(self):
         # spawn = random.random() < self.reproduction_rate
         self.spawn_positions = np.empty((0, 2))
-        for i in range(self.belief['MATE']):
-            self.energy -= consts.FISH_MAX_ENERGY // 30
-            min_x = self.position[0] - self.reproduction_radius
-            max_x = self.position[0] + self.reproduction_radius
-            min_y = self.position[1] - self.reproduction_radius
-            max_y = self.position[1] + self.reproduction_radius
-            pos = np.array([random.uniform(min_x, max_x), random.uniform(min_y, max_y)])
-            self.spawn_positions = np.append(self.spawn_positions, [pos], axis=0)
-            if self.energy < consts.FISH_MAX_ENERGY * .5:
-                break        
+        if random.random() < FISH_REPRODUCTION_RATE:
+            for _ in range(self.belief['MATE']):
+                self.energy -= consts.FISH_MAX_ENERGY // 30
+                min_x = self.position[0] - self.reproduction_radius
+                max_x = self.position[0] + self.reproduction_radius
+                min_y = self.position[1] - self.reproduction_radius
+                max_y = self.position[1] + self.reproduction_radius
+                pos = np.array([random.uniform(min_x, max_x), random.uniform(min_y, max_y)])
+                self.spawn_positions = np.append(self.spawn_positions, [pos], axis=0)
+                if self.energy < consts.FISH_MAX_ENERGY * .5:
+                    break        
                     
     def eat(self, plankton_positions, plankton):
         self.energy += plankton[self.closest_food_id].nutricional_value
@@ -161,6 +162,7 @@ class Fish(Agent):
             return consts.FISH_EAT
         elif intention == consts.FISH_REPRODUCE:
             self.reproduce()
+            self.move(dt, params, flock_fish_velocity)
             return consts.FISH_REPRODUCE
 
 

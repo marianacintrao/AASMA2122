@@ -8,7 +8,7 @@ from Fish import Fish
 from Shark import Shark
 from Plankton import Plankton
 from resources.agent import Agent
-from resources.consts import PLANKTON_REPRODUCTION_RADIUS, PLANKTON_REPRODUCTION_RATE, SCALE_FACTOR, FISH_EAT, FISH_DIE
+from resources.consts import PLANKTON_REPRODUCTION_RADIUS, PLANKTON_REPRODUCTION_RATE, SCALE_FACTOR, FISH_EAT, FISH_DIE, FISH_REPRODUCTION_RADIUS
 
 
 import pygame as pg
@@ -45,9 +45,6 @@ class Environment():
 
         self.max_steps = max_steps
         self.map_size = [20, 15]
-
-        self.fish_locals = np.empty((0))
-
         
         # CREATING FISHES
         self.fish_positions = np.random.rand(n_fishes, 2) * self.map_size
@@ -74,7 +71,7 @@ class Environment():
 
     def update_flocks(self, dt, positions, velocities, params, map_size):
 
-        f1, f2, f3, self.fish_locals = flock_forces(
+        f1, f2, f3 = flock_forces(
             positions, velocities,
             map_size = map_size,
             **params
@@ -102,6 +99,10 @@ class Environment():
         
         flock_fish_velocities = self.update_flocks(dt, self.fish_positions, self.fish_velocities, params, self.map_size)
         
+        # get local fishes for reproduction
+        distance = np.linalg.norm(self.fish_positions - self.fish_positions[:,None], axis=-1)
+        local = distance < FISH_REPRODUCTION_RADIUS
+
         # UPDATE FISHES
         dead_fishes = []
         new_fishes_pos = np.empty((0, 2))
@@ -110,7 +111,7 @@ class Environment():
                 plankton_positions=self.plankton_positions, plankton=self.plankton, 
                 flock_fish_velocity=flock_fish_velocities[i], shark_positions=self.shark_positions, 
                 fish_positions=self.fish_positions,
-                fish_locals=self.fish_locals[i]
+                fish_locals=local[i]
                 )
             
             if fish_action == consts.FISH_EAT:
@@ -123,7 +124,6 @@ class Environment():
                 # keep list of dead fishes
                 dead_fishes.append(i)
             elif fish_action == consts.FISH_REPRODUCE:
-                print("new poss", self.fishes[i].spawn_positions)
                 new_fishes_pos = np.append(new_fishes_pos, self.fishes[i].spawn_positions, axis=0)
 
         # delete dead fishes
