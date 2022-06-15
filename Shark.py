@@ -4,7 +4,7 @@ import numpy as np
 import pygame as pg
 # from Environment import SCALE_FACTOR
 from resources.agent import Agent
-from resources.consts import SHARK_MAX_ENERGY, SHARK_REPRODUCTION_RATE, SHARK_REPRODUCTION_RADIUS, SHARK_ENERGY_FOR_REPRODUCING, SHARK_RADIUS_FOR_REPRODUCING, SHARK_RADIUS_FOR_EATING, SHARK_SCARED_OF_N_FISHES, SHARK_VISION_RADIUS
+from resources.consts import SHARK_MAX_ENERGY, SHARK_REPRODUCTION_RATE, SHARK_REPRODUCTION_RADIUS, SHARK_ENERGY_FOR_REPRODUCING, SHARK_RATIO_FOR_REPRODUCING, SHARK_RADIUS_FOR_EATING, SHARK_SCARED_OF_N_FISHES, SHARK_VISION_RADIUS
 from resources.consts import FISH_NUTRITIONAL_VALUE
 from resources.consts import SCALE_FACTOR
 from resources.consts import SHARK_SIZE
@@ -13,10 +13,7 @@ from resources.consts import influence_prox
 from resources.consts import map_size
 from resources.consts import margin
 import resources.consts as consts
-from Flocking import flock_forces
-from colour import Color
 import random
-import math
 
 class Shark(Agent):
 
@@ -99,6 +96,9 @@ class Shark(Agent):
         # f2  f   f   t   t   f
         # f3  f   f   f   f   f
         '''
+        sharks_distance = distance_matrix[0:n_sharks, 0:n_sharks]
+        local_sharks = sharks_distance < SHARK_VISION_RADIUS * SHARK_RATIO_FOR_REPRODUCING
+
         fishes_distance = distance_matrix[id][n_sharks:]
         local_fishes = fishes_distance < SHARK_VISION_RADIUS
 
@@ -121,6 +121,10 @@ class Shark(Agent):
                         self.closest_food_distance = fishes_distance[i]
                         # self.fishes_distance = fishes_distance 
                         break 
+        # check for available sharks to reproduce:
+        countTrue = np.count_nonzero(local_sharks)
+        if countTrue > 0:
+            self.belief['MATE'] = countTrue - 1
         
 
 
@@ -154,13 +158,31 @@ class Shark(Agent):
             return consts.SHARK_EAT
         elif intention == consts.SHARK_REPRODUCE:
             self.reproduce()
-            # self.move(dt, params, flock_SHARK_velocity)
+            self.move(dt, self.velocity)
             return consts.SHARK_REPRODUCE
 
     def draw(self, screen, r):
         color = self.energy_to_color()
         pg.draw.circle(screen, color, (self.position[0]* SCALE_FACTOR, self.position[1]* SCALE_FACTOR), r)
 
+
+
+    def reproduce(self):
+        # spawn = random.random() < self.reproduction_rate
+        self.spawn_positions = np.empty((0, 2))
+        if random.random() < SHARK_REPRODUCTION_RATE:
+            for _ in range(self.belief['MATE']):
+                self.energy -= consts.SHARK_MAX_ENERGY // 30
+                min_x = self.position[0] - self.reproduction_radius
+                max_x = self.position[0] + self.reproduction_radius
+                min_y = self.position[1] - self.reproduction_radius
+                max_y = self.position[1] + self.reproduction_radius
+                pos = np.array([random.uniform(min_x, max_x), random.uniform(min_y, max_y)])
+                self.spawn_positions = np.append(self.spawn_positions, [pos], axis=0)
+                if self.energy < consts.SHARK_MAX_ENERGY * .5:
+                    break        
+                    
+                    
     def eat(self):
         print("TA A COMER")
         print("energia antes", self.energy)

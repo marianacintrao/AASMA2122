@@ -49,7 +49,7 @@ if __name__ == '__main__':
     print("Hello, welcome to our aquarium simulator!")
     
     n_fishes = requestInput(name="fishes", default=60)
-    n_sharks = requestInput(name="sharks", default=1)
+    n_sharks = requestInput(name="sharks", default=2)
     n_plankton = requestInput(name="plankton", default=100)
 
     print("\n===============================")  

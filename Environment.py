@@ -167,6 +167,7 @@ class Environment():
         distance_matrix = np.linalg.norm(sharks_and_fishes_pos - sharks_and_fishes_pos[:,None], axis=-1)
 
         dead_sharks = []
+        new_sharks_pos = np.empty((0, 2))
         for i in range(self.n_sharks):
 
             shark_action = self.sharks[i].update(dt, distance_matrix=distance_matrix, n_sharks=self.n_sharks, id=i, fish_positions=self.fish_positions)
@@ -183,7 +184,7 @@ class Environment():
             elif shark_action == consts.SHARK_DIE:
                dead_sharks.append(i)
             elif shark_action == consts.SHARK_REPRODUCE:
-                # TODO
+                new_sharks_pos = np.append(new_sharks_pos, self.sharks[i].spawn_positions, axis=0)
                 break
 
 
@@ -193,6 +194,14 @@ class Environment():
             self.shark_velocities = np.delete(self.shark_velocities, dead_sharks, axis=0)
             self.n_sharks -= len(dead_sharks)
             self.sharks = [i for j, i in enumerate(self.sharks) if j not in dead_sharks]
+       
+        # create new sharks
+        new_sharks_vel = (np.random.rand(len(new_sharks_pos), 2) * 2) - 1
+        for i in range(len(new_sharks_pos)):
+            self.sharks.append(Shark(velocity=new_sharks_vel[i], position=new_sharks_pos[i]))
+        self.shark_positions = np.append(self.shark_positions, new_sharks_pos, axis=0)
+        self.shark_velocities = np.append(self.shark_velocities, new_sharks_vel, axis=0)
+        self.n_sharks += len(new_sharks_pos)
 
         # update shark velocity and position vectors 
         for i in range(self.n_sharks):
