@@ -21,31 +21,11 @@ def flock_forces(pos, vel, map_size, influence_prox=0.5,
 
     ALSO - speed variable not in use
     """
-
-    # Bounce off walls...
-    # Vel X:
-    # vel[pos[:, 0]> map_size[0], 0] = -vel[pos[:, 0]> map_size[0], 0]
-    # # Vel Y:
-    # vel[pos[:, 1]> map_size[1], 1] = -vel[pos[:, 1]> map_size[1], 1]
-
-    margin = 1
+    margin = 0.5
     pos[pos[:, 0]> map_size[0] + margin, 0] = 0 -margin
     pos[pos[:, 1]> map_size[1] + margin, 1] = 0 -margin
     pos[pos[:, 0]< 0 - margin, 0] = map_size[0] +margin
     pos[pos[:, 1]< 0 - margin, 1] = map_size[1] +margin
-
-    # # # Pos X & Y:
-    # pos[pos[:, 0] > map_size[0], 0] = map_size[0]
-    # pos[pos[:, 1] > map_size[1], 1] = map_size[1]
-
-    # # # Both miniums are 0 so this is easier:
-    # # vel[pos < 0] = -vel[pos < 0]
-    # # pos[pos < 0] = 0
-
-
-
-    # Wrapping works nicely:
-    # pos = pos % map_size
 
     # Get local boids:
     distance = np.linalg.norm(pos - pos[:,None], axis=-1)
@@ -76,10 +56,6 @@ def flock_forces(pos, vel, map_size, influence_prox=0.5,
 
     # # Separation:
     ##############
-    # There might be a better way to do this, but at the moment
-    # I can't think of one...
-
-
     relative_x = pos[:, 0] - pos[:, 0, None]
     relative_y = pos[:, 1] - pos[:, 1, None]
     relative_x_local = relative_x.dot(local)
@@ -93,8 +69,6 @@ def flock_forces(pos, vel, map_size, influence_prox=0.5,
     test1 = relative_x_local / (distance**3)
     test2 = relative_y_local / (distance**3)
     
-    #test1 = relative_x_local / (np.log(distance))
-    #test2 = relative_y_local / (np.log(distance))
     # dividing by the distance converts to unit vectors, dividing again
     # adds a inverse component, stronger at close distances
 

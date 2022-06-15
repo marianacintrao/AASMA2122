@@ -4,10 +4,10 @@ import numpy as np
 import pygame as pg
 # from Environment import SCALE_FACTOR
 from resources.agent import Agent
-from resources.consts import FISH_MAX_ENERGY, FISH_REPRODUCTION_RATE, FISH_REPRODUCTION_RADIUS
+from resources.consts import FISH_MAX_ENERGY, FISH_REPRODUCTION_RATE, FISH_REPRODUCTION_RADIUS, FISH_ENERGY_FOR_REPRODUCING, FISH_THRESHOLD_FOR_HUNGER, FISH_RADIUS_FOR_REPRODUCING,  FISH_RADIUS_FOR_EATING
 from resources.consts import SCALE_FACTOR
 from resources.consts import FISH_SIZE
-from resources.consts import energy_to_color
+from resources.consts import fish_energy_to_color
 from resources.consts import influence_prox
 import resources.consts as consts
 from Flocking import flock_forces
@@ -48,10 +48,6 @@ class Fish(Agent):
         self.closest_food_distance = None
 
         self.spawn_positions = None
-  
-
-    def getColor(self) -> tuple:
-        return energy_to_color(self.energy)
 
     def getPosition(self) -> list:
         return self.position
@@ -91,12 +87,12 @@ class Fish(Agent):
 
         energy = self.energy
         belief = self.belief
-        if energy > FISH_MAX_ENERGY * .5 and belief['MATE']:
+        if energy > FISH_MAX_ENERGY * FISH_ENERGY_FOR_REPRODUCING and belief['MATE']:
             return consts.FISH_REPRODUCE
         elif energy < self.energy_decrease:
             return consts.FISH_DIE
-        elif energy < FISH_MAX_ENERGY * .5 and belief['FOOD']:
-            if self.closest_food_distance < self.vision_radius * .05:
+        elif energy < FISH_MAX_ENERGY * FISH_THRESHOLD_FOR_HUNGER and belief['FOOD']:
+            if self.closest_food_distance < self.vision_radius * FISH_RADIUS_FOR_EATING:
                 return consts.FISH_EAT
             else:
                 return consts.FISH_GO_TO_PLANKTON # intends to eat
@@ -124,13 +120,13 @@ class Fish(Agent):
 
     def energy_to_color(self) -> tuple:
         # returns rgb tuple
-        return energy_to_color(self.energy)
+        return fish_energy_to_color(self.energy)
         
     def action(self, eat=None, reproduce=None, move=None) -> int:
         raise NotImplementedError()
 
     def draw(self, screen, r):
-        color = energy_to_color(self.energy)
+        color = self.energy_to_color()
         pg.draw.circle(screen, color, (self.position[0]* SCALE_FACTOR, self.position[1]* SCALE_FACTOR), r)
 
     def reset_belief(self):

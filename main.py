@@ -1,4 +1,5 @@
 from msilib.schema import Environment
+from resources.consts import map_size
 import string
 import sys
 import numpy as np
@@ -18,12 +19,6 @@ params = {
     'cohesion_factor': 0.005,
     'separation_factor': 0.0002
 }
-
-# pygame dimentions
-# width = 800
-# height = 800
-# Base the pygame dimetions off of the map size:
-map_size = [20, 15]
 
 SCALE_FACTOR = 50
 

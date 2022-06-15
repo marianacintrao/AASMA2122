@@ -8,7 +8,7 @@ from Fish import Fish
 from Shark import Shark
 from Plankton import Plankton
 from resources.agent import Agent
-from resources.consts import PLANKTON_REPRODUCTION_RADIUS, PLANKTON_REPRODUCTION_RATE, SCALE_FACTOR, FISH_EAT, FISH_DIE, FISH_REPRODUCTION_RADIUS
+from resources.consts import PLANKTON_REPRODUCTION_RADIUS, PLANKTON_REPRODUCTION_RATE, SCALE_FACTOR, FISH_EAT, FISH_DIE, FISH_REPRODUCTION_RADIUS, SHARK_VISION_RADIUS
 
 
 import pygame as pg
@@ -62,9 +62,10 @@ class Environment():
             self.plankton.append(Plankton(position=self.plankton_positions[i]))
 
         # CREATING SHARKS
-        self.shark_positions = []
-        #for i in range(n_sharks):
-        #    self.sharks.append(Shark(velocity=self.velocities[i], position=positions[i]))
+        self.shark_positions = np.random.rand(n_sharks, 2) * self.map_size
+        self.shark_velocities = (np.random.rand(n_sharks, 2) * 2) - 1
+        for i in range(n_sharks):
+            self.sharks.append(Shark(velocity=self.shark_velocities[i], position=self.shark_positions[i]))
 
 
 
@@ -89,21 +90,14 @@ class Environment():
             velocities[v, :] = (velocities[v, :] / 
                 np.linalg.norm(velocities[v, :]))
 
-        #positions = positions + velocities * dt * consts.FISH_SPEED
         return velocities
-        # positions = positions + velocities * dt * params['speed']
-        # return positions, velocities
 
-    def update(self, dt, params):
+    def updateFishes(self, dt, flock_fish_velocities, params):
 
-        
-        flock_fish_velocities = self.update_flocks(dt, self.fish_positions, self.fish_velocities, params, self.map_size)
-        
         # get local fishes for reproduction
         distance = np.linalg.norm(self.fish_positions - self.fish_positions[:,None], axis=-1)
         local = distance < FISH_REPRODUCTION_RADIUS
-
-        # UPDATE FISHES
+        
         dead_fishes = []
         new_fishes_pos = np.empty((0, 2))
         for i in range(self.n_fishes):
@@ -140,15 +134,12 @@ class Environment():
         self.fish_velocities = np.append(self.fish_velocities, new_fishes_vel, axis=0)
         self.n_fishes += len(new_fishes_pos)
 
-    
-        
+        # update fish velocity and position vectors 
         for i in range(self.n_fishes):
             self.fish_velocities[i] = self.fishes[i].getVelocity()
             self.fish_positions[i] = self.fishes[i].getPosition()
 
-        
-        # UPDATE PLANKTON
-
+    def updatePlankton(self):
         spawn = random.random() < PLANKTON_REPRODUCTION_RATE
         
         if spawn:
@@ -164,6 +155,73 @@ class Environment():
             self.plankton_positions = np.append(self.plankton_positions, [new_plankton_pos], axis=0)
             self.n_plankton += 1
 
+    def updateSharks(self, dt, params):
+        # get local fishes for reproduction
+
+        #     s1  s2  f1  f2  f3
+        # s1  t   f   t   f   f  
+        # s2  f   f   f   f   f
+        # f1  f   f   t   t   f
+        # f2  f   f   t   t   f
+        # f3  f   f   f   f   f
+
+        
+        sharks_and_fishes_pos = np.append(self.shark_positions, self.fish_positions, axis=0)
+        distance_matrix = np.linalg.norm(sharks_and_fishes_pos - sharks_and_fishes_pos[:,None], axis=-1)
+
+        dead_sharks = []
+        for i in range(self.n_sharks):
+
+            shark_action = self.sharks[i].update(dt, params, distance_matrix=distance_matrix, n_sharks=self.n_sharks, id=i, fish_positions=self.fish_positions)
+
+            
+            if shark_action == consts.SHARK_EAT:
+                # TODO delete dead fishes
+                break
+            elif shark_action == consts.SHARK_DIE:
+               dead_sharks.append(i)
+            elif shark_action == consts.SHARK_REPRODUCE:
+                # TODO
+                break
+
+        # delete dead sharks
+        if len(dead_sharks) > 0:
+            self.shark_positions = np.delete(self.shark_positions, dead_sharks, axis=0)
+            self.shark_velocities = np.delete(self.shark_velocities, dead_sharks, axis=0)
+            self.n_sharks -= len(dead_sharks)
+            self.sharks = [i for j, i in enumerate(self.sharks) if j not in dead_sharks]
+
+        # update shark velocity and position vectors 
+        for i in range(self.n_sharks):
+            self.shark_velocities[i] = self.sharks[i].getVelocity()
+            self.shark_positions[i] = self.sharks[i].getPosition()
+
+
+
+        #print("SHARK POSITION: ", self.shark_positions[0])
+#
+        #print(local_matrix)
+
+        
+        
+
+        # returns
+
+
+    def update(self, dt, params):
+
+        # GET FLOCK VELOCITY VECTORS
+        flock_fish_velocities = self.update_flocks(dt, self.fish_positions, self.fish_velocities, params, self.map_size)
+        
+        # UPDATE FISHES
+        self.updateFishes(dt, flock_fish_velocities, params)
+        
+        # UPDATE PLANKTON
+        self.updatePlankton()
+
+        # UPDATE SHARKS
+        self.updateSharks(dt, params)
+        
 
 
     def draw(self, screen):
@@ -171,8 +229,10 @@ class Environment():
             self.plankton[i].draw(screen, consts.PLANKTON_SIZE)
             
         for i in range(self.n_fishes):
-            #self.fishes[i].draw(screen, self.fish_positions[i]*SCALE_FACTOR, consts.FISH_SIZE)
             self.fishes[i].draw(screen, consts.FISH_SIZE)
+
+        for i in range(self.n_sharks):
+            self.sharks[i].draw(screen, consts.SHARK_SIZE)
         
          
 
@@ -192,25 +252,5 @@ class Environment():
         # This returns the vector between both velocities
         return np.cross(fish.getVelocity(), shark.getVelocity())
 
-    #def update(self, dt):
-        #TODO
-        # collects observations and gives out actions
-
-        #generic movement
-        #for i in self._n_fishes:
-        #    # close2shark, agent = check_Proximity(self._fishes[i])
-        #    # if close2shark: calculate_Velocity (self._fishes[i], agent)
-        #    # With this new velocity the fish position is updated
-        #    self._fishes[i].update(dt)
-        #for i in self._n_sharks:
-        #    self._sharks[i].update(dt)
-
-    # def draw(self, screen):
-    #     #TODO
-    #     # draws all agents on the screen
-    #     for i in range(self.n_fishes):
-    #         self.fishes[i].move()
-    #         color = slef.fishes[i].energy_to_color()
-    #         pg.draw.circle(screen, color, fish_positions[i], consts.FISH_SIZE)
 
         
