@@ -103,7 +103,8 @@ class Environment():
         for i in range(self.n_fishes):
             fish_action = self.fishes[i].update(dt, params, 
                 plankton_positions=self.plankton_positions, plankton=self.plankton, 
-                flock_fish_velocity=flock_fish_velocities[i], shark_positions=self.shark_positions, 
+                flock_fish_velocity=flock_fish_velocities[i], 
+                shark_velocities=self.shark_velocities, shark_positions=self.shark_positions, 
                 fish_positions=self.fish_positions,
                 fish_locals=local[i]
                 )
@@ -120,11 +121,8 @@ class Environment():
             elif fish_action == consts.FISH_REPRODUCE:
                 new_fishes_pos = np.append(new_fishes_pos, self.fishes[i].spawn_positions, axis=0)
 
-        # delete dead fishes
-        self.fish_positions = np.delete(self.fish_positions, dead_fishes, axis=0)
-        self.fish_velocities = np.delete(self.fish_velocities, dead_fishes, axis=0)
-        self.n_fishes -= len(dead_fishes)
-        self.fishes = [i for j, i in enumerate(self.fishes) if j not in dead_fishes]
+        if len(dead_fishes) > 0:
+            self.handle_fish_deaths(dead_fishes)
 
         # create new fishes
         new_fishes_vel = (np.random.rand(len(new_fishes_pos), 2) * 2) - 1
@@ -165,24 +163,29 @@ class Environment():
         # f2  f   f   t   t   f
         # f3  f   f   f   f   f
 
-        
         sharks_and_fishes_pos = np.append(self.shark_positions, self.fish_positions, axis=0)
         distance_matrix = np.linalg.norm(sharks_and_fishes_pos - sharks_and_fishes_pos[:,None], axis=-1)
 
         dead_sharks = []
         for i in range(self.n_sharks):
 
-            shark_action = self.sharks[i].update(dt, params, distance_matrix=distance_matrix, n_sharks=self.n_sharks, id=i, fish_positions=self.fish_positions)
+            shark_action = self.sharks[i].update(dt, distance_matrix=distance_matrix, n_sharks=self.n_sharks, id=i, fish_positions=self.fish_positions)
 
             
             if shark_action == consts.SHARK_EAT:
-                # TODO delete dead fishes
+                # delete dead fishes
+                fish_id = self.sharks[i].closest_food_id
+                self.handle_fish_deaths([fish_id])
+                # self.n_fishes -= 1
+                # self.fish_positions = np.delete(self.fish_positions, fish_id, axis=0)
+                # del self.fish[fish_id]
                 break
             elif shark_action == consts.SHARK_DIE:
                dead_sharks.append(i)
             elif shark_action == consts.SHARK_REPRODUCE:
                 # TODO
                 break
+
 
         # delete dead sharks
         if len(dead_sharks) > 0:
@@ -196,16 +199,6 @@ class Environment():
             self.shark_velocities[i] = self.sharks[i].getVelocity()
             self.shark_positions[i] = self.sharks[i].getPosition()
 
-
-
-        #print("SHARK POSITION: ", self.shark_positions[0])
-#
-        #print(local_matrix)
-
-        
-        
-
-        # returns
 
 
     def update(self, dt, params):
@@ -234,23 +227,16 @@ class Environment():
         for i in range(self.n_sharks):
             self.sharks[i].draw(screen, consts.SHARK_SIZE)
         
-         
+    def handle_fish_deaths(self, dead_fishes):
+        # delete dead fishes
+        self.fish_positions = np.delete(self.fish_positions, dead_fishes, axis=0)
+        self.fish_velocities = np.delete(self.fish_velocities, dead_fishes, axis=0)
+        self.n_fishes -= len(dead_fishes)
+        if len(dead_fishes) > 1:
+            self.fishes = [i for j, i in enumerate(self.fishes) if j not in dead_fishes]
+        else:
+            del self.fishes[dead_fishes[0]]
 
-    # Check if the fish is getting closer to the shark
-    def check_Proximity(self, fish):
-        maximumDistance = 10
-        for i in self._n_sharks:
-            distance = math.dist(fish.getPosition(),self._sharks[i].getPosition())
-            # If the fish is too closed, returns True and the shark that is close
-            if maximumDistance < distance:
-                return True, self._sharks[i]
-        # If the fish isn't close to other sharks, maintains the velocity
-        return False, fish
-
-    # Get velocity that represents the change in direction due to shark proximity
-    def calculate_Velocity(self, fish, shark):
-        # This returns the vector between both velocities
-        return np.cross(fish.getVelocity(), shark.getVelocity())
 
 
         

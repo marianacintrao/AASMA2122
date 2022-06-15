@@ -46,6 +46,7 @@ class Fish(Agent):
 
         self.closest_food_id = None
         self.closest_food_distance = None
+        self.closest_shark_id = None
 
         self.spawn_positions = None
 
@@ -72,10 +73,18 @@ class Fish(Agent):
                 self.closest_food_distance = closest_food_distance
                 self.closest_food_id = planktonDist.index(closest_food_distance)
 
-       # # check shark proximity
-       # dangerDist = []
-       # for shark_position in plankton_positions:
-       #     dangerDist.append(np.linalg.norm(self.position - shark_position))
+        if len(shark_positions) > 0:
+
+            sharkDist = []
+            for shark_position in shark_positions:
+                sharkDist.append(np.linalg.norm(self.position - shark_position))
+    
+            closest_shark_distance = min(sharkDist)
+    
+            if closest_shark_distance <= self.vision_radius:
+                self.belief["SHARK"] = True
+                # self.closest_shark_distance = closest_shark_distance
+                self.closest_shark_id = sharkDist.index(closest_shark_distance)
 
        # check for available fishes to reproduce:
         countTrue = np.count_nonzero(fish_locals)
@@ -87,7 +96,9 @@ class Fish(Agent):
 
         energy = self.energy
         belief = self.belief
-        if energy > FISH_MAX_ENERGY * FISH_ENERGY_FOR_REPRODUCING and belief['MATE']:
+        if belief['SHARK']:
+            return consts.ESCAPE
+        elif energy > FISH_MAX_ENERGY * FISH_ENERGY_FOR_REPRODUCING and belief['MATE']:
             return consts.FISH_REPRODUCE
         elif energy < self.energy_decrease:
             return consts.FISH_DIE
@@ -114,7 +125,7 @@ class Fish(Agent):
                 if self.energy < consts.FISH_MAX_ENERGY * .5:
                     break        
                     
-    def eat(self, plankton_positions, plankton):
+    def eat(self, plankton):
         self.energy += plankton[self.closest_food_id].nutricional_value
 
 
@@ -131,6 +142,7 @@ class Fish(Agent):
 
     def reset_belief(self):
         self.closest_food_id = None
+        self.closest_shark_id = None
         self.closest_food_distance = None
         self.spawn_positions = None
         self.belief['FOOD'] = False
@@ -138,7 +150,7 @@ class Fish(Agent):
         self.belief['MATE'] = False
 
 
-    def update(self, dt, params, plankton_positions, plankton, flock_fish_velocity, shark_positions=[], fish_positions=[], fish_locals=[]):
+    def update(self, dt, params, plankton_positions, plankton, flock_fish_velocity, shark_velocities=[], shark_positions=[], fish_positions=[], fish_locals=[]):
 
         self.reset_belief()
 
@@ -147,6 +159,9 @@ class Fish(Agent):
         intention = self.deliberate()
         if intention == consts.FISH_DIE:
             return consts.FISH_DIE
+        elif intention == consts.ESCAPE:
+            self.escape(dt, params, shark_velocities[self.closest_shark_id])
+            return consts.ESCAPE
         elif intention == consts.FLOCK:
             self.move(dt, params, flock_fish_velocity)
             return consts.FLOCK
@@ -154,7 +169,7 @@ class Fish(Agent):
             self.move_to_plankton(dt, params, plankton_positions[self.closest_food_id])
             return consts.FISH_GO_TO_PLANKTON
         elif intention == consts.FISH_EAT:
-            self.eat(plankton_positions, plankton)
+            self.eat(plankton)
             return consts.FISH_EAT
         elif intention == consts.FISH_REPRODUCE:
             self.reproduce()
@@ -175,6 +190,12 @@ class Fish(Agent):
         
         # np.linalg.norm(velocity)
 
+        self.move(dt, params, velocity)
+        
+    def escape(self, dt, params, shark_velocity):
+        # print("self.velocity", self.velocity, "shark_velocity", shark_velocity)
+        velocity = np.mean(np.array([self.velocity, shark_velocity]), axis=0)
+        # print("velocity", velocity)
         self.move(dt, params, velocity)
     
 

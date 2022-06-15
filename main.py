@@ -13,12 +13,13 @@ import resources.consts as consts
 #from resources.consts import width, height 
 
 params = {
-    'speed': 0.004,
+    'speed': consts.FISH_SPEED,
     'influence_prox': consts.influence_prox,
     'alignment_factor': 0.005,
     'cohesion_factor': 0.005,
     'separation_factor': 0.0002
 }
+
 
 SCALE_FACTOR = 50
 

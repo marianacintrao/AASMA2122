@@ -4,7 +4,8 @@ import numpy as np
 import pygame as pg
 # from Environment import SCALE_FACTOR
 from resources.agent import Agent
-from resources.consts import SHARK_MAX_ENERGY, SHARK_REPRODUCTION_RATE, SHARK_REPRODUCTION_RADIUS, SHARK_ENERGY_FOR_REPRODUCING, SHARK_THRESHOLD_FOR_HUNGER, SHARK_RADIUS_FOR_REPRODUCING, SHARK_RADIUS_FOR_EATING, SHARK_SCARED_OF_N_FISHES, SHARK_VISION_RADIUS
+from resources.consts import SHARK_MAX_ENERGY, SHARK_REPRODUCTION_RATE, SHARK_REPRODUCTION_RADIUS, SHARK_ENERGY_FOR_REPRODUCING, SHARK_RADIUS_FOR_REPRODUCING, SHARK_RADIUS_FOR_EATING, SHARK_SCARED_OF_N_FISHES, SHARK_VISION_RADIUS
+from resources.consts import FISH_NUTRITIONAL_VALUE
 from resources.consts import SCALE_FACTOR
 from resources.consts import SHARK_SIZE
 from resources.consts import shark_energy_to_color
@@ -56,6 +57,8 @@ class Shark(Agent):
 
         self.spawn_positions = None
 
+        # self.fishes_distance = np.empty((0))
+
     def getPosition(self) -> tuple:
         return self.position
 
@@ -78,7 +81,7 @@ class Shark(Agent):
             return consts.SHARK_REPRODUCE
         elif energy < self.energy_decrease:
             return consts.SHARK_DIE
-        elif energy < SHARK_MAX_ENERGY * SHARK_THRESHOLD_FOR_HUNGER and belief['FOOD']:
+        elif energy < SHARK_MAX_ENERGY - FISH_NUTRITIONAL_VALUE and belief['FOOD']:
             if self.closest_food_distance < self.vision_radius * SHARK_RADIUS_FOR_EATING:
                 return consts.SHARK_EAT
             else:
@@ -113,22 +116,23 @@ class Shark(Agent):
                         fishes_distance[i] = max_dist
                         min_dist = np.min(fishes_distance)
                     else:
-                        self.belief['FOOD'] = True
-                        self.closest_fish_id = i
+                        self.belief['FOOD'] = countTrue
+                        self.closest_food_id = i
                         self.closest_food_distance = fishes_distance[i]
+                        # self.fishes_distance = fishes_distance 
                         break 
         
 
 
     def reset_belief(self):
-        self.closest_fish_id = None
+        self.closest_food_id = None
         self.closest_food_distance = None
         self.spawn_positions = None
         self.belief['FOOD'] = False
         self.belief['MATE'] = False
 
 
-    def update(self, dt, params, distance_matrix, n_sharks, id, fish_positions):
+    def update(self, dt, distance_matrix, n_sharks, id, fish_positions):
 
         self.reset_belief()
 
@@ -138,13 +142,15 @@ class Shark(Agent):
         if intention == consts.SHARK_DIE:
             return consts.SHARK_DIE
         elif intention == consts.FLOCK:
-            self.move(dt, params, self.velocity)
+            self.move(dt, self.velocity)
             return consts.FLOCK
         elif intention == consts.SHARK_GO_TO_FISH:
-            self.move_to_fish(dt, params, fish_positions[self.closest_fish_id])
+            self.move_to_fish(dt, fish_positions[self.closest_food_id])
+            # print("TA A ir po peixe")
+
             return consts.SHARK_GO_TO_FISH
         elif intention == consts.SHARK_EAT:
-            # self.eat(plankton_positions, plankton)
+            self.eat()
             return consts.SHARK_EAT
         elif intention == consts.SHARK_REPRODUCE:
             self.reproduce()
@@ -155,13 +161,15 @@ class Shark(Agent):
         color = self.energy_to_color()
         pg.draw.circle(screen, color, (self.position[0]* SCALE_FACTOR, self.position[1]* SCALE_FACTOR), r)
 
-    def eat(self, fish):
-        # self.energy = fish.nutritional_value
-        raise NotImplementedError()
+    def eat(self):
+        print("TA A COMER")
+        print("energia antes", self.energy)
+        self.energy += FISH_NUTRITIONAL_VALUE
+        print("energia depois", self.energy)
 
-    def move(self, dt, params, velocity):
+    def move(self, dt, velocity):
 
-        self.position = self.position + velocity * dt * params['speed']
+        self.position = self.position + velocity * dt * consts.SHARK_SPEED
         if self.position[0] > map_size[0] + margin:
             self.position[0] = 0 - margin
         elif self.position[0] < 0 - margin:
@@ -174,9 +182,9 @@ class Shark(Agent):
         self.velocity = velocity
         self.energy = self.energy - self.energy_decrease 
 
-    def move_to_fish(self, dt, params, fish_position):
+    def move_to_fish(self, dt, fish_position):
         velocity = fish_position - self.position
-        self.move(dt, params, velocity)
+        self.move(dt, velocity)
 
 
 
