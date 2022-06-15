@@ -1,7 +1,7 @@
 from colour import Color
 
 FISH_MAX_ENERGY = 100
-SHARK_MAX_ENERGY = 1000
+SHARK_MAX_ENERGY = 200
 SCALE_FACTOR = 50
 influence_prox = 2.5
 

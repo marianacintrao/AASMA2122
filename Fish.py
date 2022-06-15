@@ -96,12 +96,15 @@ class Fish(Agent):
 
         energy = self.energy
         belief = self.belief
-        if belief['SHARK']:
+        if energy < self.energy_decrease:
+            return consts.FISH_DIE
+        # running away is priority
+        elif belief['SHARK']:
             return consts.ESCAPE
+        # then reproducing
         elif energy > FISH_MAX_ENERGY * FISH_ENERGY_FOR_REPRODUCING and belief['MATE']:
             return consts.FISH_REPRODUCE
-        elif energy < self.energy_decrease:
-            return consts.FISH_DIE
+        # then eating
         elif energy < FISH_MAX_ENERGY * FISH_THRESHOLD_FOR_HUNGER and belief['FOOD']:
             if self.closest_food_distance < self.vision_radius * FISH_RADIUS_FOR_EATING:
                 return consts.FISH_EAT
@@ -195,6 +198,7 @@ class Fish(Agent):
     def escape(self, dt, params, shark_velocity):
         # print("self.velocity", self.velocity, "shark_velocity", shark_velocity)
         velocity = np.mean(np.array([self.velocity, shark_velocity]), axis=0)
+        self.energy = self.energy - self.energy_decrease 
         # print("velocity", velocity)
         self.move(dt, params, velocity)
     

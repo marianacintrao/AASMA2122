@@ -86,7 +86,7 @@ class Shark(Agent):
         else:
             return consts.SHARK_MOVE # default case (fish just vibes)
 
-    def observe(self, distance_matrix, n_sharks, id):
+    def observe(self, distance_matrix, n_sharks, index):
 
         ''' DISTANCE MATRIX SHAPE 
         #     s1  s2  f1  f2  f3
@@ -99,14 +99,15 @@ class Shark(Agent):
         sharks_distance = distance_matrix[0:n_sharks, 0:n_sharks]
         local_sharks = sharks_distance < SHARK_VISION_RADIUS * SHARK_RATIO_FOR_REPRODUCING
 
-        fishes_distance = distance_matrix[id][n_sharks:]
+        fishes_distance = distance_matrix[index][n_sharks:]
         local_fishes = fishes_distance < SHARK_VISION_RADIUS
 
-        n_fishes = local_fishes.shape[0]
-        max_dist = np.max(fishes_distance)
-        min_dist = np.min(fishes_distance)
+        
 
         if np.count_nonzero(local_fishes) > 0:
+            n_fishes = local_fishes.shape[0]
+            max_dist = np.max(fishes_distance, initial=0)
+            min_dist = np.min(fishes_distance)
             for i in range(n_fishes):
                 if fishes_distance[i] == min_dist:
                     fish_locals = distance_matrix[i + n_sharks][n_sharks:] < SHARK_VISION_RADIUS
@@ -122,9 +123,9 @@ class Shark(Agent):
                         # self.fishes_distance = fishes_distance 
                         break 
         # check for available sharks to reproduce:
-        countTrue = np.count_nonzero(local_sharks)
-        if countTrue > 0:
-            self.belief['MATE'] = countTrue - 1
+        countTrue = np.count_nonzero(local_sharks[index])
+        if countTrue > 1:
+            self.belief['MATE'] = True
         
 
 
@@ -150,8 +151,6 @@ class Shark(Agent):
             return consts.FLOCK
         elif intention == consts.SHARK_GO_TO_FISH:
             self.move_to_fish(dt, fish_positions[self.closest_food_id])
-            # print("TA A ir po peixe")
-
             return consts.SHARK_GO_TO_FISH
         elif intention == consts.SHARK_EAT:
             self.eat()
@@ -184,10 +183,7 @@ class Shark(Agent):
                     
                     
     def eat(self):
-        print("TA A COMER")
-        print("energia antes", self.energy)
         self.energy += FISH_NUTRITIONAL_VALUE
-        print("energia depois", self.energy)
 
     def move(self, dt, velocity):
 
