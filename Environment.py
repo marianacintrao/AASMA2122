@@ -67,6 +67,11 @@ class Environment():
         for i in range(n_sharks):
             self.sharks.append(Shark(velocity=self.shark_velocities[i], position=self.shark_positions[i]))
 
+        self.newborn_fishes = 0
+        self.newborn_plankton = 0
+        self.newborn_sharks = 0
+
+
 
 
 
@@ -131,6 +136,7 @@ class Environment():
         self.fish_positions = np.append(self.fish_positions, new_fishes_pos, axis=0)
         self.fish_velocities = np.append(self.fish_velocities, new_fishes_vel, axis=0)
         self.n_fishes += len(new_fishes_pos)
+        self.newborn_fishes += len(new_fishes_pos)
 
         # update fish velocity and position vectors 
         for i in range(self.n_fishes):
@@ -152,6 +158,7 @@ class Environment():
             self.plankton.append(Plankton(position=new_plankton_pos))
             self.plankton_positions = np.append(self.plankton_positions, [new_plankton_pos], axis=0)
             self.n_plankton += 1
+            self.newborn_fishes += 1
 
     def updateSharks(self, dt, params):
         # get local fishes for reproduction
@@ -202,6 +209,7 @@ class Environment():
             self.shark_positions = np.append(self.shark_positions, new_sharks_pos, axis=0)
             self.shark_velocities = np.append(self.shark_velocities, new_sharks_vel, axis=0)
             self.n_sharks += len(new_sharks_pos)
+            self.newborn_sharks += len(new_sh_pos)
 
         # update shark velocity and position vectors 
         for i in range(self.n_sharks):
@@ -245,6 +253,12 @@ class Environment():
             self.fishes = [i for j, i in enumerate(self.fishes) if j not in dead_fishes]
         else:
             del self.fishes[dead_fishes[0]]
+
+    def get_population_metrics(self):
+        return self.n_fishes, self.n_plankton, self.n_sharks
+
+    def get_n_newborns(self):
+        return self.newborn_fishes, self.newborn_plankton, self.newborn_sharks
 
 
 

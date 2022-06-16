@@ -4,7 +4,7 @@ import numpy as np
 import pygame as pg
 # from Environment import SCALE_FACTOR
 from resources.agent import Agent
-from resources.consts import FISH_MAX_ENERGY, FISH_REPRODUCTION_RATE, FISH_REPRODUCTION_RADIUS, FISH_ENERGY_FOR_REPRODUCING, FISH_THRESHOLD_FOR_HUNGER, FISH_RADIUS_FOR_REPRODUCING,  FISH_RADIUS_FOR_EATING
+from resources.consts import FISH_MAX_ENERGY, FISH_REPRODUCTION_RATE, FISH_ENERGY_SPENT_REPRODUCING, FISH_ENERGY_FOR_REPRODUCING, FISH_THRESHOLD_FOR_HUNGER, FISH_RADIUS_FOR_REPRODUCING,  FISH_RADIUS_FOR_EATING
 from resources.consts import SCALE_FACTOR
 from resources.consts import FISH_SIZE
 from resources.consts import fish_energy_to_color
@@ -88,7 +88,7 @@ class Fish(Agent):
 
        # check for available fishes to reproduce:
         countTrue = np.count_nonzero(fish_locals)
-        if countTrue > 0:
+        if countTrue > 1:
             self.belief['MATE'] = countTrue
 
     # returns an intention
@@ -118,7 +118,7 @@ class Fish(Agent):
         self.spawn_positions = np.empty((0, 2))
         if random.random() < FISH_REPRODUCTION_RATE:
             for _ in range(self.belief['MATE']):
-                self.energy -= consts.FISH_MAX_ENERGY // 30
+                self.energy -= int(consts.FISH_MAX_ENERGY*FISH_ENERGY_SPENT_REPRODUCING)
                 min_x = self.position[0] - self.reproduction_radius
                 max_x = self.position[0] + self.reproduction_radius
                 min_y = self.position[1] - self.reproduction_radius
