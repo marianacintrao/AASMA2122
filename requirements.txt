@@ -1,6 +1,5 @@
 numpy
 pygame
 matplotlib
-scipy
 colour
 pygame

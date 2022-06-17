@@ -71,8 +71,11 @@ class Environment():
         self.newborn_plankton = 0
         self.newborn_sharks = 0
 
-
-
+        self.fish_deaths = 0
+        self.fish_deaths_by_starvation = 0
+        self.fish_deaths_by_predation = 0
+        self.plankton_deaths = 0
+        self.shark_deaths = 0
 
 
     def update_flocks(self, dt, positions, velocities, params, map_size):
@@ -105,6 +108,9 @@ class Environment():
         
         dead_fishes = []
         new_fishes_pos = np.empty((0, 2))
+
+        plankton_amount = self.n_plankton
+
         for i in range(self.n_fishes):
             fish_action = self.fishes[i].update(dt, params, 
                 plankton_positions=self.plankton_positions, plankton=self.plankton, 
@@ -120,14 +126,22 @@ class Environment():
                 self.n_plankton -= 1
                 self.plankton_positions = np.delete(self.plankton_positions, plankton_id, axis=0)
                 del self.plankton[plankton_id]
+                self.plankton_deaths += 1
+                
+
             elif fish_action == consts.FISH_DIE:
                 # keep list of dead fishes
                 dead_fishes.append(i)
             elif fish_action == consts.FISH_REPRODUCE:
                 new_fishes_pos = np.append(new_fishes_pos, self.fishes[i].spawn_positions, axis=0)
 
+        ## register plankton deaths
+        #self.plankton_deaths += plankton_amount - self.n_plankton
+
+
         if len(dead_fishes) > 0:
             self.handle_fish_deaths(dead_fishes)
+            self.fish_deaths_by_starvation += len(dead_fishes)
 
         # create new fishes
         new_fishes_vel = (np.random.rand(len(new_fishes_pos), 2) * 2) - 1
@@ -135,8 +149,9 @@ class Environment():
             self.fishes.append(Fish(velocity=new_fishes_vel[i], position=new_fishes_pos[i]))
         self.fish_positions = np.append(self.fish_positions, new_fishes_pos, axis=0)
         self.fish_velocities = np.append(self.fish_velocities, new_fishes_vel, axis=0)
-        self.n_fishes += len(new_fishes_pos)
+
         self.newborn_fishes += len(new_fishes_pos)
+        self.n_fishes += len(new_fishes_pos)
 
         # update fish velocity and position vectors 
         for i in range(self.n_fishes):
@@ -144,6 +159,7 @@ class Environment():
             self.fish_positions[i] = self.fishes[i].getPosition()
 
     def updatePlankton(self):
+
         spawn = random.random() < PLANKTON_REPRODUCTION_RATE
         
         if spawn:
@@ -158,7 +174,8 @@ class Environment():
             self.plankton.append(Plankton(position=new_plankton_pos))
             self.plankton_positions = np.append(self.plankton_positions, [new_plankton_pos], axis=0)
             self.n_plankton += 1
-            self.newborn_fishes += 1
+            self.newborn_plankton += 1
+
 
     def updateSharks(self, dt, params):
         # get local fishes for reproduction
@@ -180,12 +197,10 @@ class Environment():
             shark_action = self.sharks[i].update(dt, distance_matrix=distance_matrix, n_sharks=self.n_sharks, id=i, fish_positions=self.fish_positions)
 
             if shark_action == consts.SHARK_EAT:
-                # delete dead fishes
+                # delete dead fish
                 fish_id = self.sharks[i].closest_food_id
                 self.handle_fish_deaths([fish_id])
-                # self.n_fishes -= 1
-                # self.fish_positions = np.delete(self.fish_positions, fish_id, axis=0)
-                # del self.fish[fish_id]
+                self.fish_deaths_by_predation += 1
                 break
             elif shark_action == consts.SHARK_DIE:
                dead_sharks.append(i)
@@ -200,6 +215,8 @@ class Environment():
             self.shark_velocities = np.delete(self.shark_velocities, dead_sharks, axis=0)
             self.n_sharks -= len(dead_sharks)
             self.sharks = [i for j, i in enumerate(self.sharks) if j not in dead_sharks]
+        
+        self.shark_deaths += len(dead_sharks)
        
         # create new sharks
         if len(new_sharks_pos) > 0:
@@ -208,9 +225,10 @@ class Environment():
                 self.sharks.append(Shark(velocity=new_sharks_vel[i], position=new_sharks_pos[i]))
             self.shark_positions = np.append(self.shark_positions, new_sharks_pos, axis=0)
             self.shark_velocities = np.append(self.shark_velocities, new_sharks_vel, axis=0)
-            self.n_sharks += len(new_sharks_pos)
-            self.newborn_sharks += len(new_sh_pos)
 
+            self.newborn_sharks += len(new_sharks_pos)
+            self.n_sharks += len(new_sharks_pos)
+            
         # update shark velocity and position vectors 
         for i in range(self.n_sharks):
             self.shark_velocities[i] = self.sharks[i].getVelocity()
@@ -254,11 +272,36 @@ class Environment():
         else:
             del self.fishes[dead_fishes[0]]
 
+        self.fish_deaths += len(dead_fishes)
+
     def get_population_metrics(self):
         return self.n_fishes, self.n_plankton, self.n_sharks
 
     def get_n_newborns(self):
-        return self.newborn_fishes, self.newborn_plankton, self.newborn_sharks
+        f = self.newborn_fishes
+        p = self.newborn_plankton
+        s = self.newborn_sharks
+        self.newborn_fishes = 0
+        self.newborn_plankton = 0
+        self.newborn_sharks = 0
+        return f, p, s
+
+    def get_n_deaths(self):
+        f = self.fish_deaths
+        p = self.plankton_deaths
+        s = self.shark_deaths
+        self.fish_deaths = 0
+        self.plankton_deaths = 0
+        self.shark_deaths = 0
+        return f, p, s
+
+    def fish_death_types(self):
+        s = self.fish_deaths_by_starvation
+        p = self.fish_deaths_by_predation
+        self.fish_deaths_by_starvation = 0
+        self.fish_deaths_by_predation = 0
+
+        return s, p
 
 
 

@@ -22,5 +22,10 @@ Group Project for the Autonomous Agents and Multi-Agent Systems Course 2021/2022
         $ pip install -r requirements.txt
 
 3. Run project
+    1.  on PS
 
-    $ py main.py
+        C:\> py main.py
+
+    2. on Ubuntu
+
+        $ python3 install -r requirements.txt

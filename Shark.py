@@ -4,10 +4,9 @@ import numpy as np
 import pygame as pg
 # from Environment import SCALE_FACTOR
 from resources.agent import Agent
-from resources.consts import SHARK_MAX_ENERGY, SHARK_REPRODUCTION_RATE, SHARK_REPRODUCTION_RADIUS, SHARK_ENERGY_FOR_REPRODUCING, SHARK_RATIO_FOR_REPRODUCING, SHARK_RADIUS_FOR_EATING, SHARK_SCARED_OF_N_FISHES, SHARK_VISION_RADIUS
+from resources.consts import SHARK_MAX_ENERGY, SHARK_REPRODUCTION_RATE, SHARK_ENERGY_FOR_REPRODUCING, SHARK_RATIO_FOR_REPRODUCING, SHARK_RADIUS_FOR_EATING, SHARK_SCARED_OF_N_FISHES, SHARK_VISION_RADIUS
 from resources.consts import FISH_NUTRITIONAL_VALUE
 from resources.consts import SCALE_FACTOR
-from resources.consts import SHARK_SIZE
 from resources.consts import shark_energy_to_color
 from resources.consts import influence_prox
 from resources.consts import map_size
@@ -74,15 +73,18 @@ class Shark(Agent):
 
         energy = self.energy
         belief = self.belief
-        if energy > SHARK_MAX_ENERGY * SHARK_ENERGY_FOR_REPRODUCING and belief['MATE']:
-            return consts.SHARK_REPRODUCE
-        elif energy < self.energy_decrease:
+        if energy < self.energy_decrease:
             return consts.SHARK_DIE
+
+        # eating
         elif energy < SHARK_MAX_ENERGY - FISH_NUTRITIONAL_VALUE and belief['FOOD']:
             if self.closest_food_distance < self.vision_radius * SHARK_RADIUS_FOR_EATING:
                 return consts.SHARK_EAT
             else:
                 return consts.SHARK_GO_TO_FISH # intends to eat
+        #reproducing
+        elif energy > SHARK_MAX_ENERGY * SHARK_ENERGY_FOR_REPRODUCING and belief['MATE']:
+            return consts.SHARK_REPRODUCE
         else:
             return consts.SHARK_MOVE # default case (fish just vibes)
 
@@ -138,7 +140,6 @@ class Shark(Agent):
 
 
     def update(self, dt, distance_matrix, n_sharks, id, fish_positions):
-
         self.reset_belief()
 
         self.observe(distance_matrix, n_sharks, id)

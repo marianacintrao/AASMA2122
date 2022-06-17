@@ -2,7 +2,7 @@ import pygame as pg
 import numpy as np
 from colour import Color
 from resources.agent import Agent
-from resources.consts import FISH_MAX_ENERGY, FISH_THRESHOLD_FOR_HUNGER
+from resources.consts import PLANKTON_NUTRITIONAL_VALUE
 from resources.consts import SCALE_FACTOR
 from resources.consts import PLANKTON_REPRODUCTION_RATE, PLANKTON_REPRODUCTION_RADIUS
 import random
@@ -31,7 +31,7 @@ class Plankton(Agent):
     # def __init__(self, position: tuple, velocity: list):
         super(Plankton, self).__init__(f"Plankton")
         self.position = position
-        self.nutricional_value = int(FISH_MAX_ENERGY * (1-FISH_THRESHOLD_FOR_HUNGER))
+        self.nutricional_value = PLANKTON_NUTRITIONAL_VALUE
         self.reproduction_rate = PLANKTON_REPRODUCTION_RATE
         self.reproduction_radius = PLANKTON_REPRODUCTION_RADIUS
 

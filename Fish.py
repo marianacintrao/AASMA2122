@@ -4,9 +4,8 @@ import numpy as np
 import pygame as pg
 # from Environment import SCALE_FACTOR
 from resources.agent import Agent
-from resources.consts import FISH_MAX_ENERGY, FISH_REPRODUCTION_RATE, FISH_ENERGY_SPENT_REPRODUCING, FISH_ENERGY_FOR_REPRODUCING, FISH_THRESHOLD_FOR_HUNGER, FISH_RADIUS_FOR_REPRODUCING,  FISH_RADIUS_FOR_EATING
+from resources.consts import FISH_MAX_ENERGY, FISH_REPRODUCTION_RATE, FISH_ENERGY_SPENT_REPRODUCING, FISH_ENERGY_FOR_REPRODUCING, PLANKTON_NUTRITIONAL_VALUE,  FISH_RADIUS_FOR_EATING
 from resources.consts import SCALE_FACTOR
-from resources.consts import FISH_SIZE
 from resources.consts import fish_energy_to_color
 from resources.consts import influence_prox
 import resources.consts as consts
@@ -98,18 +97,18 @@ class Fish(Agent):
         belief = self.belief
         if energy < self.energy_decrease:
             return consts.FISH_DIE
-        # running away is priority
-        elif belief['SHARK']:
+        # running away is priority except if energy too low
+        elif belief['SHARK'] and energy > FISH_MAX_ENERGY // 5:
             return consts.ESCAPE
-        # then reproducing
-        elif energy > FISH_MAX_ENERGY * FISH_ENERGY_FOR_REPRODUCING and belief['MATE']:
-            return consts.FISH_REPRODUCE
         # then eating
-        elif energy < FISH_MAX_ENERGY * FISH_THRESHOLD_FOR_HUNGER and belief['FOOD']:
+        elif energy < (FISH_MAX_ENERGY - PLANKTON_NUTRITIONAL_VALUE) and belief['FOOD']:
             if self.closest_food_distance < self.vision_radius * FISH_RADIUS_FOR_EATING:
                 return consts.FISH_EAT
             else:
                 return consts.FISH_GO_TO_PLANKTON # intends to eat
+        # then reproducing
+        elif energy > FISH_MAX_ENERGY * FISH_ENERGY_FOR_REPRODUCING and belief['MATE']:
+            return consts.FISH_REPRODUCE
         else:
             return consts.FLOCK # default case (fish just vibes)
 
@@ -125,6 +124,8 @@ class Fish(Agent):
                 max_y = self.position[1] + self.reproduction_radius
                 pos = np.array([random.uniform(min_x, max_x), random.uniform(min_y, max_y)])
                 self.spawn_positions = np.append(self.spawn_positions, [pos], axis=0)
+
+                # print("Reproducing!")
                 if self.energy < consts.FISH_MAX_ENERGY * .5:
                     break        
                     
