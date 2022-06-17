@@ -32,4 +32,4 @@ Group Project for the Autonomous Agents and Multi-Agent Systems Course 2021/2022
 
 4. Preview
 
-    ![Preview of simulation](http://web.tecnico.ulisboa.pt/~ist193737/AASMA/preview.gif)
+    ![Preview of simulation](images/preview.gif)
